@@ -4,73 +4,76 @@ const assert = require('assert');
 
 const dboper = require('./operations');
 
-const url = 'mongodb://localhost:27017/';
+const url = 'mongodb://localhost:27017/conFusion';
 
-MongoClient.connect(url, (err, client) => {
-
-    assert.equal(err, null);
+MongoClient.connect(url).then((db) => {
 
     console.log('Connected correctly to server');
 
-    var db = client.db('conFusion');
-
-    dboper.insertDocument(db, { name: "Vadonut", description: "Test" },
-        "dishes", (result) => {
+    dboper.insertDocument(db, { name: "Vadonut", description: "Test"},
+        "dishes")
+        .then((result) => {
             console.log("Insert Document:\n", result.ops);
 
-            dboper.findDocuments(db, "dishes", (docs) => {
-                console.log("Found Documents:\n", docs);
+            return dboper.findDocuments(db, "dishes");
+        })
+        .then((docs) => {
+            console.log("Found Documents:\n", docs);
 
-                dboper.updateDocument(db, { name: "Vadonut" },
-                    { description: "Updated Test" }, "dishes",
-                    (result) => {
-                        console.log("Updated Document:\n", result.result);
+            return dboper.updateDocument(db, { name: "Vadonut" },
+                    { description: "Updated Test" }, "dishes");
 
-                        dboper.findDocuments(db, "dishes", (docs) => {
-                            console.log("Found Updated Documents:\n", docs);
+        })
+        .then((result) => {
+            console.log("Updated Document:\n", result.result);
 
-                            db.dropCollection("dishes", (result) => {
-                                console.log("Dropped Collection: ", result);
+            return dboper.findDocuments(db, "dishes");
+        })
+        .then((docs) => {
+            console.log("Found Updated Documents:\n", docs);
+                            
+            return db.dropCollection("dishes");
+        })
+        .then((result) => {
+            console.log("Dropped Collection: ", result);
 
-                                client.close();
-                            });
-                        });
-                    });
-            });
-        });
+            return db.close();
+        })
+        .catch((err) => console.log(err));
 
-    // var db = client.db('conFusion');
+})
+.catch((err) => console.log(err));
 
-    // const collection = db.collection('dishes');
+// MongoClient.connect(url, (err, client) => {
 
-    // collection.insertOne({ "name": "Uthappizza", "description": "test" },
+//     assert.equal(err, null);
 
-    //     (err, result) => {
+//     console.log('Connected correctly to server');
 
-    //         assert.equal(err, null);
+//     var db = client.db('conFusion');
 
-    //         console.log("After Insert:\n");
+//     dboper.insertDocument(db, { name: "Vadonut", description: "Test" },
+//         "dishes", (result) => {
+//             console.log("Insert Document:\n", result.ops);
 
-    //         console.log(result.ops);
+//             dboper.findDocuments(db, "dishes", (docs) => {
+//                 console.log("Found Documents:\n", docs);
 
-    //         collection.find({}).toArray((err, docs) => {
+//                 dboper.updateDocument(db, { name: "Vadonut" },
+//                     { description: "Updated Test" }, "dishes",
+//                     (result) => {
+//                         console.log("Updated Document:\n", result.result);
 
-    //             assert.equal(err, null);
+//                         dboper.findDocuments(db, "dishes", (docs) => {
+//                             console.log("Found Updated Documents:\n", docs);
 
-    //             console.log("Found:\n");
+//                             db.dropCollection("dishes", (result) => {
+//                                 console.log("Dropped Collection: ", result);
 
-    //             console.log(docs);
-
-    //             db.dropCollection("dishes", (err, result) => {
-
-    //                 assert.equal(err, null);
-
-    //                 client.close();
-
-    //             });
-
-    //         });
-
-    //     });
-
-});
+//                                 client.close();
+//                             });
+//                         });
+//                     });
+//             });
+//         });
+// });
